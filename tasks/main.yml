@@ -1,0 +1,52 @@
+---
+- name: Install Disable THP Service
+  become: yes
+  template:
+      src: "templates/disable-transparent-huge-pages.service.j2"
+      dest: "/etc/systemd/system/disable-transparent-huge-pages.service"
+      mode: 0555
+  when: thp_disable
+
+- name: Enable Service
+  become: yes
+  systemd:
+      name: disable-transparent-huge-pages.service
+      enabled: yes
+      daemon_reload: yes
+      state: restarted
+  when:
+    - thp_disable
+    - ansible_virtualization_type != 'docker'
+
+- name: Test Changes
+  command: "cat /sys/kernel/mm/transparent_hugepage/enabled"
+  when:
+    - thp_disable
+    - ansible_virtualization_type != 'docker'
+
+- name: Test Changes
+  command: "cat /sys/kernel/mm/transparent_hugepage/defrag"
+  when:
+    - thp_disable
+    - ansible_virtualization_type != 'docker'
+
+- name: Create Tuned Directory
+  become: yes
+  file:
+      path: "/etc/tuned/no-thp"
+      state: directory
+      mode: 0755
+  when: thp_disable and (ansible_distribution == "RedHat") and ansible_virtualization_type != 'docker'
+
+- name: Install Disable THP Tuned Configuration
+  become: yes
+  template:
+      src: "templates/tuned.conf.j2"
+      dest: "/etc/tuned/no-thp/tuned.conf"
+      mode: 0555
+  when: thp_disable and (ansible_distribution == "RedHat") and ansible_virtualization_type != 'docker'
+
+- name: Tickle Tuned
+  become: yes
+  command: "tuned-adm profile no-thp"
+  when: thp_disable and (ansible_distribution == "RedHat") and ansible_virtualization_type != 'docker'

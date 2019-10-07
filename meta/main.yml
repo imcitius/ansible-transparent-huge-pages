@@ -1,0 +1,18 @@
+galaxy_info:
+  author: Ilya Rubinchik
+  description: Transparent Huge Pages.
+
+  license: Apache 2
+
+  min_ansible_version: 2.1
+
+  platforms:
+  - name: EL
+    versions:
+      - 7
+  - name: Fedora
+  - name: Ubuntu
+    versions:
+      - xenial
+
+dependencies: []
